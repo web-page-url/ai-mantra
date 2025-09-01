@@ -1,0 +1,3 @@
+The Models can be configured using the following file.
+route.ts
+ai-mantra\src\app\api\ai-compare\route.ts

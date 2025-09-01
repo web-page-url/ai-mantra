@@ -73,6 +73,20 @@ body {
   background: linear-gradient(180deg, var(--neon-purple), var(--neon-pink));
 }
 
+/* Utility scrollbar classes */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scrollbar-thumb-gray-600::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 2px;
+}
+
+.scrollbar-track-gray-800::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
 /* Utility Classes - Compatible with Tailwind CSS v4 */
 @layer utilities {
   .glass-effect {

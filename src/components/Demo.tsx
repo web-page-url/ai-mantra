@@ -13,11 +13,96 @@ interface AIResponse {
 }
 
 const aiModels = [
-  { name: 'GPT-4', icon: '🤖', color: 'from-green-500 to-emerald-500' },
+  { name: 'ChatGPT', icon: '🤖', color: 'from-green-500 to-emerald-500' },
   { name: 'Claude', icon: '🧠', color: 'from-blue-500 to-cyan-500' },
   { name: 'Gemini', icon: '💎', color: 'from-purple-500 to-pink-500' },
   { name: 'Llama', icon: '🦙', color: 'from-orange-500 to-red-500' },
 ];
+
+// Function to format AI responses for better readability
+const formatResponse = (text: string) => {
+  if (!text) return '';
+  
+  // Split by double newlines to preserve paragraph breaks
+  const paragraphs = text.split(/\n\s*\n/);
+  
+  return paragraphs.map((paragraph, index) => {
+    // Clean up the paragraph
+    let cleaned = paragraph.trim();
+    
+    // Handle bullet points and numbered lists
+    if (cleaned.includes('\n- ') || cleaned.includes('\n* ') || cleaned.includes('\n• ')) {
+      const lines = cleaned.split('\n');
+      return (
+        <div key={index} className="mb-4">
+          {lines.map((line, lineIndex) => {
+            const trimmedLine = line.trim();
+            if (trimmedLine.match(/^[\-\*•]\s/)) {
+              return (
+                <div key={lineIndex} className="flex items-start gap-2 mb-2">
+                  <span className="text-blue-400 mt-1">•</span>
+                  <span>{trimmedLine.replace(/^[\-\*•]\s/, '')}</span>
+                </div>
+              );
+            } else if (trimmedLine.match(/^\d+\.\s/)) {
+              const number = trimmedLine.match(/^(\d+)\./)?.[1];
+              return (
+                <div key={lineIndex} className="flex items-start gap-2 mb-2">
+                  <span className="text-blue-400 font-semibold min-w-[20px]">{number}.</span>
+                  <span>{trimmedLine.replace(/^\d+\.\s/, '')}</span>
+                </div>
+              );
+            } else if (trimmedLine) {
+              return <p key={lineIndex} className="mb-2">{trimmedLine}</p>;
+            }
+            return null;
+          }).filter(Boolean)}
+        </div>
+      );
+    }
+    
+    // Handle headers (lines that end with : or are all caps)
+    if (cleaned.match(/^[A-Z\s]+:?$/) && cleaned.length < 50) {
+      return (
+        <h4 key={index} className="text-lg font-semibold text-white mb-3 mt-4 first:mt-0">
+          {cleaned}
+        </h4>
+      );
+    }
+    
+    // Handle bold text markers **text**
+    if (cleaned.includes('**')) {
+      const parts = cleaned.split(/\*\*(.*?)\*\*/);
+      return (
+        <p key={index} className="mb-4 leading-relaxed">
+          {parts.map((part, partIndex) => 
+            partIndex % 2 === 1 ? 
+              <strong key={partIndex} className="text-white font-semibold">{part}</strong> : 
+              part
+          )}
+        </p>
+      );
+    }
+    
+    // Regular paragraph
+    return (
+      <p key={index} className="mb-4 leading-relaxed">
+        {cleaned}
+      </p>
+    );
+  }).filter(Boolean);
+};
+
+// Component to render formatted response
+const FormattedResponse = ({ text }: { text: string }) => {
+  const formatted = formatResponse(text);
+  
+  return (
+    <div className="text-gray-300 space-y-2">
+      {formatted}
+    </div>
+  );
+};
 
 export default function Demo() {
   const [prompt, setPrompt] = useState('');
@@ -236,12 +321,12 @@ export default function Demo() {
                       </div>
                     ) : (
                       <>
-                        <p className="text-gray-300 leading-relaxed mb-6">
-                          {response.response}
-                        </p>
+                        <div className="mb-6 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
+                          <FormattedResponse text={response.response} />
+                        </div>
                         
                         {/* Action Buttons */}
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 pt-4 border-t border-white/10">
                           <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}

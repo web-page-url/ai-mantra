@@ -1,28 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// AI Model configurations for OpenRouter
+// AI Model configurations for OpenRouter (Free models)
 const AI_MODELS = [
   {
-    name: 'GPT-4',
-    id: 'openai/gpt-4',
+    name: 'ChatGPT',
+    id: 'qwen/qwen3-235b-a22b:free', // Using Qwen as ChatGPT alternative
     icon: '🤖',
     color: 'from-green-500 to-emerald-500',
   },
   {
     name: 'Claude',
-    id: 'anthropic/claude-3-haiku',
+    id: 'deepseek/deepseek-chat-v3.1:free', // Using DeepSeek as Claude alternative
     icon: '🧠',
     color: 'from-blue-500 to-cyan-500',
   },
   {
     name: 'Gemini',
-    id: 'google/gemini-pro',
+    id: 'google/gemini-2.0-flash-exp:free', // Using actual Gemini free model
     icon: '💎',
     color: 'from-purple-500 to-pink-500',
   },
   {
     name: 'Llama',
-    id: 'meta-llama/llama-3.1-8b-instruct',
+    id: 'meta-llama/llama-3.3-70b-instruct:free', // Using actual Llama free model
     icon: '🦙',
     color: 'from-orange-500 to-red-500',
   },
@@ -63,6 +63,7 @@ async function callOpenRouter(prompt: string, model: string): Promise<string> {
       headers: {
         'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
         'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://ai-mantra.vercel.app',
         'X-Title': 'Ai-Mantra',
       },
       body: JSON.stringify({
@@ -79,13 +80,32 @@ async function callOpenRouter(prompt: string, model: string): Promise<string> {
     });
 
     if (!response.ok) {
+      const errorData = await response.text();
+      console.error(`OpenRouter API error for model ${model}:`, response.status, errorData);
       throw new Error(`OpenRouter API error: ${response.status}`);
     }
 
     const data = await response.json();
     
     if (data.choices && data.choices[0] && data.choices[0].message) {
-      return data.choices[0].message.content;
+      let content = data.choices[0].message.content;
+      
+      // Improve formatting for better readability
+      content = content
+        // Add line breaks before numbered lists
+        .replace(/(\d+\.)\s/g, '\n$1 ')
+        // Add line breaks before bullet points
+        .replace(/([.!?])\s*([-*•])\s/g, '$1\n\n$2 ')
+        // Add line breaks before headers (lines ending with :)
+        .replace(/([.!?])\s*([A-Z][^.!?]*:)/g, '$1\n\n$2')
+        // Add spacing between paragraphs
+        .replace(/([.!?])\s*([A-Z][^.!?]*[.!?])/g, '$1\n\n$2')
+        // Clean up multiple line breaks
+        .replace(/\n{3,}/g, '\n\n')
+        // Trim whitespace
+        .trim();
+      
+      return content;
     }
     
     throw new Error('Invalid response format from OpenRouter');
@@ -148,7 +168,7 @@ export async function POST(request: NextRequest) {
       
       const demoResponses = [
         {
-          model: 'GPT-4',
+          model: 'ChatGPT',
           response: `I understand you're asking about: "${prompt}". This is a comprehensive approach that considers multiple perspectives and provides actionable insights. In my analysis, I would recommend considering the various factors involved and taking a structured approach to address your question effectively.`,
           icon: '🤖',
           color: 'from-green-500 to-emerald-500',
