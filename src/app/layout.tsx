@@ -86,6 +86,7 @@ export default function RootLayout({
       </head>
       <body
         className={`${poppins.variable} ${inter.variable} font-poppins antialiased bg-black text-white overflow-x-hidden`}
+        suppressHydrationWarning={true}
       >
         <div className="relative min-h-screen">
           {children}
