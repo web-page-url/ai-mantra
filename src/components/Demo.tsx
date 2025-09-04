@@ -242,13 +242,18 @@ export default function Demo() {
                 <textarea
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  placeholder="Ask anything... Compare how different AI models respond to your prompt!"
+                  placeholder="Ask anything... Keep your prompt concise (under 800 chars) for complete responses!"
                   className="w-full p-6 bg-black/30 border border-white/10 rounded-2xl text-white placeholder-gray-400 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all duration-300 resize-none min-h-[120px] text-lg"
                   disabled={isGenerating}
+                  maxLength={800}
                 />
                 <div className="absolute bottom-4 right-4 flex gap-2">
-                  <span className="text-sm text-gray-500">
-                    {prompt.length}/500
+                  <span className={`text-sm ${
+                    prompt.length > 700 ? 'text-red-400' : 
+                    prompt.length > 600 ? 'text-yellow-400' : 
+                    'text-gray-500'
+                  }`}>
+                    {prompt.length}/800
                   </span>
                 </div>
               </div>

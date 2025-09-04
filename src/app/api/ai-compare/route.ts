@@ -70,12 +70,17 @@ async function callOpenRouter(prompt: string, model: string): Promise<string> {
         model: model,
         messages: [
           {
+            role: 'system',
+            content: 'You are a helpful AI assistant. Please provide complete, well-structured responses. Keep your response concise but comprehensive, ensuring you finish all your thoughts and sentences within the token limit. Structure your response with clear paragraphs, use bullet points for lists when appropriate, and make sure to conclude your response properly without cutting off mid-sentence.'
+          },
+          {
             role: 'user',
             content: prompt
           }
         ],
-        max_tokens: 500,
+        max_tokens: 750,
         temperature: 0.7,
+        stop: null,
       }),
     });
 
@@ -89,6 +94,28 @@ async function callOpenRouter(prompt: string, model: string): Promise<string> {
     
     if (data.choices && data.choices[0] && data.choices[0].message) {
       let content = data.choices[0].message.content;
+      const finishReason = data.choices[0].finish_reason;
+      
+      // Check if response was cut off due to length
+      if (finishReason === 'length') {
+        // Try to end at the last complete sentence
+        const lastSentenceEnd = Math.max(
+          content.lastIndexOf('.'),
+          content.lastIndexOf('!'),
+          content.lastIndexOf('?')
+        );
+        
+        if (lastSentenceEnd > content.length * 0.7) {
+          // If we can find a sentence end in the last 30% of text, use it
+          content = content.substring(0, lastSentenceEnd + 1);
+        } else {
+          // Otherwise add an indication that the response was truncated
+          content = content.trim();
+          if (!content.endsWith('.') && !content.endsWith('!') && !content.endsWith('?')) {
+            content += '...';
+          }
+        }
+      }
       
       // Improve formatting for better readability
       content = content
@@ -144,9 +171,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (prompt.length > 1000) {
+    if (prompt.length > 800) {
       return NextResponse.json(
-        { error: 'Prompt too long. Maximum 1000 characters allowed.' },
+        { error: 'Prompt too long. Maximum 800 characters allowed for complete responses.' },
         { status: 400 }
       );
     }
